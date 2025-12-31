@@ -1,0 +1,9 @@
+This is fine.
+Something went wrong: ERROR opening file.
+User failed login from 10.0.0.5
+add more lines with recognized patterns
+to see alerts while running the main.py
+User failed login from 10.0.0.5
+
+
+ERROR: Something broke

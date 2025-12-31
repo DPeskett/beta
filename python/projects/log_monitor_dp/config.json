@@ -1,0 +1,19 @@
+{
+  "log_file": "example.log",
+  "check_interval": 0.5,
+  "patterns": [
+    "ERROR",
+    "CRITICAL",
+    "failed login"
+  ],
+  "alert_method": "file",
+  "email_settings": {
+    "enabled": false,
+    "smtp_server": "",
+    "port": 587,
+    "use_tls": true,
+    "username": "",
+    "password": "",
+    "recipient": ""
+  }
+}
