@@ -27,6 +27,15 @@ class Snake:
             self.x_pos -= 20
             self.segments.append(segment)
 
+    def add_segment(self):
+        segment = Turtle(shape='square')
+        segment.fillcolor('white')
+        segment.penup()
+        segment.goto(self.x_pos, self.y_pos)
+        self.x_pos -= 20
+        self.segments.append(segment)
+        self.num_of_segments += 1
+
     def move_snake(self):
         for seg_index in range(len(self.segments) - 1, 0, -1):
             new_x = self.segments[seg_index - 1].xcor()
@@ -60,8 +69,8 @@ class Snake:
         if x > 300 or x < -300 or y < -300 or y > 300:
             self.head.setposition((-190, 0))
             return False
-        for seg_index in range(1,len(self.segments)-1):
-            if self.segments[seg_index].position() == self.head.position():
+        for segment in self.segments[1:]:
+            if self.head.distance(segment) < 10:
                 return False
 
         return True

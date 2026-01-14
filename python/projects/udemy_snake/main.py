@@ -1,13 +1,15 @@
 from turtle import Screen
+
+from scoreboard import Scoreboard
 from snake import Snake
 from food import Food
 
 speeds = {
     'fast' : 50,
     'fastest' : 25,
-    'medium' : 100,
-    'slow' : 200,
-    'slowest' : 300
+    'med' : 100,
+    'slow' : 133,
+    'slowest' : 166
 }
 
 play_again = 'yes'
@@ -22,12 +24,14 @@ while play_again[:1].lower() == 'y':
     screen.title('Snake')
     screen.tracer(0)
 
+    scoreboard = Scoreboard()
+    food = Food()
     snake = Snake(None)
     snake.init_game()
     screen.update()
     speed = ""
     while speed not in speeds.keys():
-        speed = screen.textinput("Difficulty setting speed", "How fast? (fast,medium,slow)")
+        speed = screen.textinput("Difficulty setting speed", "How fast? (fast,med,slow)")
     snake.speed = speeds[speed]
 
     screen.listen()
@@ -39,9 +43,15 @@ while play_again[:1].lower() == 'y':
 
     while not_dead:
         snake.move_snake()
+        if snake.head.distance(food) < 15:
+            print('nom nom nom')
+            food.refresh()
+            scoreboard.increase_score()
+            snake.add_segment()
+
         screen.update()
         not_dead = snake.is_snake_alive()
-    play_again = screen.textinput('Game Over', 'Game Over! play again (y/n)')
+    play_again = screen.textinput('Game Over', f'Game Over you scored {scoreboard.score}! play again (y/n)')
 
 
 screen.bye()
