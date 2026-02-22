@@ -28,7 +28,7 @@ class Scoreboard(Turtle):
         self.write(f"{self.score_a}   {self.score_b}",
                    False, 'center', ('Courier', 25, 'normal'))
 
-    def gameover(self):
+    def game_over(self):
         self.goto(0, 0)
         self.write(f"Game Over\nScore A[{self.score_a}] B[{self.score_b}]",
                    False, 'center', ('Courier', 25, 'normal'))

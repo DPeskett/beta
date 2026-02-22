@@ -19,4 +19,11 @@ class Scoreboard(Turtle):
         self.update_scoreboard()
 
     def update_scoreboard(self):
-        self.write(f"Score: {self.score}", False, ALIGNMENT, FONT)
+        old_score = '0'
+        with open("highscore.txt") as hs:
+            old_score = hs.read()
+            if int(old_score) < self.score:
+                old_score = self.score
+                with open("highscore.txt", mode="w") as write_hs:
+                    write_hs.write(f"{old_score}")
+        self.write(f"Score: {self.score} : HS: {old_score}", False, ALIGNMENT, FONT)

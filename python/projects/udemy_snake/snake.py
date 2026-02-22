@@ -12,7 +12,7 @@ class Snake:
          head.goto(self.x_pos, self.y_pos)
          self.segments = [head]
          self.head = self.segments[0]
-         self.num_of_segments = 10
+         self.num_of_segments = 3
          self.speed = speed
          self.x_pos -= 20
          self.dir = DIRECTIONS['right']
