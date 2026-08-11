@@ -1,0 +1,150 @@
+// public/js/dashboard.js
+// Role enforcement: lower numeric rank = higher privilege
+// Rank mapping: 1=root 2=admin 3=moderator 4=manager 5=unranked
+
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+  const messageEl = document.getElementById('welcomeMessage');
+  const formMessage = document.getElementById('formMessage');
+
+  function showMsg(text, err = false) {
+    formMessage.textContent = text;
+    formMessage.style.color = err ? '#b00020' : '#0b6623';
+  }
+
+  const me = await api('/api/me', { method: 'GET' });
+  if (!me.ok) return requireAuthRedirect();
+
+  const user = me.body.user;
+  const rank = user.rank ?? 5;
+
+  if (rank === 5) {
+    messageEl.innerHTML = '<strong>Welcome — you are unranked. Please speak to your supervisor.</strong>';
+    setTimeout(() => { window.location.href = '/index.html'; }, 10000);
+    return;
+  }
+
+  // show manager add form for rank 4 or higher privilege (rank <=4)
+  if (rank <= 4) document.getElementById('addTaskWrap').style.display = 'block';
+  if (rank <= 2) document.getElementById('adminUsersWrap').style.display = 'block';
+
+  // bind logout
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    window.location.href = '/index.html';
+  });
+
+  // load tasks and render
+  await loadAndRenderTasks(rank, user);
+
+  // add task handler (managers and above)
+  const addForm = document.getElementById('addTaskForm');
+  addForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('taskTitle').value.trim();
+    const description = document.getElementById('taskDesc').value.trim();
+    const due_by = document.getElementById('taskDue').value || null;
+    if (!title) return showMsg('Title required', true);
+    const res = await api('/api/tasks', {
+      method: 'POST',
+      body: JSON.stringify({ task_title: title, task_description: description, due_by })
+    });
+    if (res.ok) {
+      showMsg('Task added');
+      addForm.reset();
+      await loadAndRenderTasks(rank, user);
+    } else {
+      showMsg(res.body?.error || 'Failed to add task', true);
+    }
+  });
+
+  // admin: load users
+  if (rank <= 2) await loadAndRenderUsers();
+}
+
+async function loadAndRenderTasks(rank, user) {
+  const list = document.getElementById('tasksList');
+  list.innerHTML = 'Loading tasks...';
+  const res = await api('/api/tasks', { method: 'GET' });
+  if (!res.ok) { list.innerHTML = 'Failed to load tasks'; return; }
+  const tasks = res.body.tasks || [];
+  if (!tasks.length) { list.innerHTML = '<em>No tasks</em>'; return; }
+
+  list.innerHTML = '';
+  tasks.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'taskRow';
+    row.style.border = '1px solid #ddd';
+    row.style.padding = '8px';
+    row.style.marginBottom = '8px';
+    const title = document.createElement('div'); title.textContent = `${t.task_title} (priority ${t.priority})`;
+    const meta = document.createElement('div'); meta.style.fontSize = '12px'; meta.style.color = '#666';
+    meta.textContent = `Assigned by: ${t.assigned_by || 'N/A'} • Progress: ${t.progress} • Due: ${t.due_by || '—'}`;
+    const desc = document.createElement('div'); desc.textContent = t.task_description || '';
+
+    row.appendChild(title); row.appendChild(meta); row.appendChild(desc);
+
+    // Controls
+    const controls = document.createElement('div'); controls.style.marginTop = '8px';
+    // Managers (rank 4) can edit/delete their own tasks only (server will enforce); moderators/admin/root can act on all.
+    if (rank <= 4) {
+      const canEdit = (rank <= 3) || (Number(t.assigned_by) === Number(user.id));
+      if (canEdit) {
+        const editBtn = document.createElement('button'); editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => editTaskPrompt(t));
+        controls.appendChild(editBtn);
+        const delBtn = document.createElement('button'); delBtn.style.marginLeft = '8px'; delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', async () => {
+          if (!confirm('Delete this task?')) return;
+          const r = await api(`/api/tasks/${t.task_id}`, { method: 'DELETE' });
+          if (r.ok) { showTemp('Deleted'); loadAndRenderTasks(rank, user); } else { showTemp(r.body?.error || 'Delete failed', true); }
+        });
+        controls.appendChild(delBtn);
+      }
+    }
+
+    row.appendChild(controls);
+    list.appendChild(row);
+  });
+}
+
+function showTemp(msg, err=false) {
+  const fm = document.getElementById('formMessage'); fm.textContent = msg; fm.style.color = err ? '#b00020' : '#0b6623';
+  setTimeout(()=> fm.textContent='', 2500);
+}
+
+function editTaskPrompt(task) {
+  const newTitle = prompt('Title', task.task_title);
+  if (newTitle === null) return;
+  const newDesc = prompt('Description', task.task_description || '');
+  const newProgress = prompt('Progress', task.progress || 'Not Started');
+  api(`/api/tasks/${task.task_id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ task_title: newTitle, task_description: newDesc, progress: newProgress })
+  }).then(r => {
+    if (r.ok) { showTemp('Updated'); init(); } else { showTemp(r.body?.error || 'Update failed', true); }
+  });
+}
+
+// Admin users
+async function loadAndRenderUsers() {
+  const res = await api('/api/users?roles=3,4', { method: 'GET' });
+  if (!res.ok) return;
+  const tbody = document.querySelector('#usersTable tbody'); tbody.innerHTML = '';
+  res.body.users.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${u.user_id}</td><td>${u.user_name}</td><td>${u.email}</td><td>${u.rank}</td>`;
+    const actionTd = document.createElement('td');
+    const promoteBtn = document.createElement('button'); promoteBtn.textContent = 'Promote';
+    promoteBtn.addEventListener('click', async () => {
+      const newRank = prompt('Set rank (1 root - 5 unranked)', u.rank);
+      if (!newRank) return;
+      const r = await api(`/api/users/${u.user_id}`, { method: 'PUT', body: JSON.stringify({ rank: Number(newRank) }) });
+      if (r.ok) loadAndRenderUsers(); else alert(r.body?.error || 'Failed');
+    });
+    actionTd.appendChild(promoteBtn);
+    tr.appendChild(actionTd);
+    tbody.appendChild(tr);
+  });
+}

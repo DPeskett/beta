@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Tasks</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="container" id="mainContainer">
+    <h2 id="pageTitle">Tasks</h2>
+
+    <div id="welcomeMessage" role="status" aria-live="polite"></div>
+
+    <!-- Manager: add task -->
+    <div id="addTaskWrap" style="display:none; margin-bottom:16px;">
+      <h3>Add Task</h3>
+      <form id="addTaskForm">
+        <label>Title<input id="taskTitle" required /></label>
+        <label>Description<textarea id="taskDesc"></textarea></label>
+        <label>Due by<input id="taskDue" type="datetime-local" /></label>
+        <button id="addTaskBtn" type="submit">Add Task</button>
+      </form>
+    </div>
+
+    <!-- Tasks list -->
+    <div id="tasksWrap">
+      <h3>Open Tasks</h3>
+      <div id="tasksList"></div>
+    </div>
+
+    <!-- Admin: users table -->
+    <div id="adminUsersWrap" style="display:none; margin-top:24px;">
+      <h3>Manage Moderators & Managers</h3>
+      <table id="usersTable" style="width:100%; border-collapse:collapse;">
+        <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Rank</th><th>Action</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button id="logoutBtn">Logout</button>
+    </div>
+
+    <div id="formMessage" role="status" aria-live="polite" style="margin-top:8px;"></div>
+  </div>
+
+  <script src="js/authClient.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log In – My Pi App</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="container" aria-labelledby="login-heading">
+    <h2 id="login-heading">Sign In</h2>
+
+    <form id="loginForm" autocomplete="on" novalidate aria-describedby="login-instructions">
+      <p id="login-instructions">All fields required. Use your registered email and password.</p>
+
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        autocomplete="email"
+        required
+        inputmode="email"
+        aria-required="true"
+        aria-describedby="emailError"
+        placeholder="you@example.com"
+      />
+      <span id="emailError" class="field-error" aria-live="assertive"></span>
+
+      <label for="password">Password</label>
+      <div>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          autocomplete="current-password"
+          required
+          aria-required="true"
+          aria-describedby="passwordError"
+          placeholder="At least 6 characters"
+          style="flex:1;"
+        />
+        <button type="button" id="togglePassword" class="inline-toggle" aria-label="Show password">Show</button>
+      </div>
+      <span id="passwordError" class="field-error" aria-live="assertive"></span>
+
+      <button type="submit" id="loginButton">Login</button>
+      <div id="formMessage" role="status" aria-live="polite"></div>
+
+      <div class="register-link" style="margin-top:12px;">
+        <p>Don't have an account? <a href="register.html">Register here</a></p>
+      </div>
+    </form>
+  </main>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

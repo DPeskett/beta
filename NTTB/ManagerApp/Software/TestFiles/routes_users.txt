@@ -1,0 +1,39 @@
+// routes/users.js
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const mariadb = require('mariadb');
+const router = express.Router();
+const pool = mariadb.createPool({
+  host: process.env.DB_HOST, user: process.env.DB_USER, password: process.env.DB_PASS,
+  database: process.env.DB_NAME, connectionLimit: 5
+});
+async function withConn(fn) { const c = await pool.getConnection(); try{return await fn(c);}finally{try{c.release()}catch{} } }
+async function auth(req,res,next){
+  const h = req.headers.authorization || ''; if(!h.startsWith('Bearer ')) return res.status(401).json({error:'Missing token'});
+  try{ const p = jwt.verify(h.slice(7), process.env.JWT_SECRET);
+    const rows = await withConn(conn => conn.query('SELECT user_id, rank FROM users WHERE user_id = ? OR email = ?', [p.sub, p.email]));
+    if(!rows || !rows.length) return res.status(401).json({error:'User not found'});
+    req.user = { id: rows[0].user_id, rank: rows[0].rank }; next();
+  }catch(e){ return res.status(401).json({error:'Invalid token'}); }
+}
+
+router.get('/', auth, async (req, res) => {
+  if (req.user.rank > 2) return res.status(403).json({ error: 'Insufficient role' });
+  const roles = (req.query.roles || '').split(',').map(s => Number(s)).filter(Boolean);
+  try {
+    const q = roles.length ? 'SELECT user_id, user_name, email, rank FROM users WHERE rank IN (' + roles.map(()=>'?').join(',') + ')' : 'SELECT user_id, user_name, email, rank FROM users';
+    const params = roles.length ? roles : [];
+    const users = await withConn(conn => conn.query(q, params));
+    res.json({ users });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
+});
+
+router.put('/:id', auth, async (req, res) => {
+  if (req.user.rank > 2) return res.status(403).json({ error: 'Insufficient role' });
+  const id = Number(req.params.id); const rank = Number(req.body.rank);
+  if (!Number.isInteger(rank) || rank < 1 || rank > 5) return res.status(400).json({ error: 'Invalid rank' });
+  try { await withConn(conn => conn.query('UPDATE users SET rank = ? WHERE user_id = ?', [rank, id])); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Update failed' }); }
+});
+
+module.exports = router;

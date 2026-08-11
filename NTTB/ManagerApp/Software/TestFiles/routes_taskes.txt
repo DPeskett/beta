@@ -1,0 +1,88 @@
+// routes/tasks.js
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const mariadb = require('mariadb');
+
+const router = express.Router();
+const pool = mariadb.createPool({
+  host: process.env.DB_HOST, user: process.env.DB_USER, password: process.env.DB_PASS,
+  database: process.env.DB_NAME, connectionLimit: 5
+});
+
+async function withConn(fn) {
+  const conn = await pool.getConnection();
+  try { return await fn(conn); } finally { try{conn.release()}catch{} }
+}
+
+// auth middleware: verify token and attach user info (id, email, rank from DB)
+async function auth(req, res, next) {
+  const authh = req.headers.authorization || '';
+  if (!authh.startsWith('Bearer ')) return res.status(401).json({ error: 'Missing token' });
+  const token = authh.slice(7);
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    // lookup rank and id if not present
+    const rows = await withConn(conn => conn.query('SELECT user_id, rank FROM users WHERE user_id = ? OR email = ?', [payload.sub, payload.email]));
+    if (!rows || !rows.length) return res.status(401).json({ error: 'User not found' });
+    req.user = { id: rows[0].user_id, rank: rows[0].rank };
+    next();
+  } catch (err) { return res.status(401).json({ error: 'Invalid token' }); }
+}
+
+function allow(minRank) { // minRank is max numeric value allowed (lower number == more privilege)
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    if (req.user.rank <= minRank) return next();
+    return res.status(403).json({ error: 'Insufficient role' });
+  };
+}
+
+// List tasks
+router.get('/', auth, async (req, res) => {
+  try {
+    const tasks = await withConn(conn => conn.query('SELECT * FROM tasks ORDER BY priority DESC, assigned_at DESC'));
+    res.json({ tasks });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
+});
+
+// Create task (manager+, moderator+, admin+, root)
+router.post('/', auth, async (req, res) => {
+  const { task_title, task_description, due_by, priority } = req.body;
+  if (req.user.rank > 4) return res.status(403).json({ error: 'Insufficient role' });
+  if (!task_title) return res.status(400).json({ error: 'title required' });
+  try {
+    const r = await withConn(conn => conn.query('INSERT INTO tasks (task_title, task_description, due_by, assigned_by, priority) VALUES (?, ?, ?, ?, ?)',
+      [task_title, task_description || null, due_by || null, req.user.id, priority || 0]));
+    res.status(201).json({ task_id: r.insertId });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Create failed' }); }
+});
+
+// Update (manager may update own tasks; moderator+/admin/root can update any)
+router.put('/:id', auth, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const rows = await withConn(conn => conn.query('SELECT * FROM tasks WHERE task_id = ?', [id]));
+    if (!rows || !rows.length) return res.status(404).json({ error: 'Not found' });
+    const task = rows[0];
+    if (req.user.rank > 3 && task.assigned_by !== req.user.id) return res.status(403).json({ error: 'Insufficient role' });
+    const updates = { task_title: req.body.task_title||task.task_title, task_description: req.body.task_description||task.task_description, progress: req.body.progress||task.progress, due_by: req.body.due_by||task.due_by };
+    await withConn(conn => conn.query('UPDATE tasks SET task_title = ?, task_description = ?, progress = ?, due_by = ? WHERE task_id = ?',
+      [updates.task_title, updates.task_description, updates.progress, updates.due_by, id]));
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Update failed' }); }
+});
+
+// Delete (manager may delete own; moderator+/admin/root can delete any)
+router.delete('/:id', auth, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const rows = await withConn(conn => conn.query('SELECT * FROM tasks WHERE task_id = ?', [id]));
+    if (!rows || !rows.length) return res.status(404).json({ error: 'Not found' });
+    const task = rows[0];
+    if (req.user.rank > 3 && task.assigned_by !== req.user.id) return res.status(403).json({ error: 'Insufficient role' });
+    await withConn(conn => conn.query('DELETE FROM tasks WHERE task_id = ?', [id]));
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Delete failed' }); }
+});
+
+module.exports = router;

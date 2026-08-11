@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create Account – My Pi App</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="container" aria-labelledby="register-heading">
+    <h2 id="register-heading">Create Account</h2>
+
+    <form id="registerForm" novalidate aria-describedby="register-instructions">
+      <p id="register-instructions">Enter your full name, email, and a password (minimum 6 characters).</p>
+
+      <label for="user_name">Full name</label>
+      <input
+        type="text"
+        id="user_name"
+        name="user_name"
+        autocomplete="name"
+        required
+        aria-required="true"
+        aria-describedby="userNameError"
+        placeholder="Your full name"
+      />
+      <span id="userNameError" class="field-error" aria-live="assertive"></span>
+
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        autocomplete="email"
+        required
+        aria-required="true"
+        aria-describedby="emailError"
+        placeholder="you@example.com"
+      />
+      <span id="emailError" class="field-error" aria-live="assertive"></span>
+
+      <label for="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        autocomplete="new-password"
+        required
+        aria-required="true"
+        aria-describedby="passwordError"
+        placeholder="At least 6 characters"
+      />
+      <span id="passwordError" class="field-error" aria-live="assertive"></span>
+
+      <label for="phone">Phone (optional)</label>
+      <input
+        type="tel"
+        id="phone"
+        name="phone"
+        autocomplete="tel"
+        aria-describedby="phoneError"
+        placeholder="123-456-7890"
+      />
+      <span id="phoneError" class="field-error" aria-live="assertive"></span>
+
+      <button type="submit" id="registerButton">Register</button>
+      <div id="formMessage" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="register-link">
+      <p>Already have an account? <a href="index.html">Login here</a></p>
+    </div>
+  </main>
+
+  <script src="js/register.js"></script>
+</body>
+</html>

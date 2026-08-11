@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/js/dashboard.js" defer></script>
+    <link rel="stylesheet" href="css/style.css">
+    <title>Dashboard</title>
+</head>
+
+<body>
+    <h1>Welcome to the Dashboard</h1>
+    <h2 id="welcome">Welcome</h2>
+    <p>Email: <span id="email">—</span></p>
+    <p>Rank: <span id="rank">—</span></p>
+
+    <div id="adminPanel" hidden>
+        <h3>Admin Tools</h3>
+        <button id="loadUsersBtn">View All Users</button>
+        <button id="createUserBtn">Create New User</button>
+        <div id="usersList"></div>
+    </div>
+
+    <div id="managerPanel" hidden>
+        <h3>Manager Tools</h3>
+        <button id="viewReportsBtn">View Reports</button>
+    </div>
+
+    <div id="basicPanel" hidden>
+        <h3>Your Profile</h3>
+        <button id="editProfileBtn">Edit Profile</button>
+    </div>
+
+    <div id="flash" hidden></div>
+
+    <div id="editModal" hidden>
+        <form id="editForm">
+            <input id="editUserId" type="hidden">
+            <input id="editUserName" placeholder="Name">
+            <input id="editUserEmail" placeholder="Email">
+            <select id="editUserRank">
+                <option>root</option>
+                <option>root-admin</option>
+                <option>admin</option>
+                <option>manager</option>
+                <option>user</option>
+            </select>
+            <button type="submit">Save</button>
+        </form>
+    </div>
+
+    <button id="logoutBtn">Logout</button>
+</body>
+
+</html>
