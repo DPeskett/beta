@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\dusti\\OneDrive\\Documents\\Beta\\beta\\csharp\\examples\\LINQingAround\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D4C5F3F2-C49C-40DA-B667-B50E03785C93}|LINQingAround.csproj|c:\\users\\dusti\\onedrive\\documents\\beta\\beta\\csharp\\examples\\linqingaround\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4C5F3F2-C49C-40DA-B667-B50E03785C93}|LINQingAround.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\dusti\\OneDrive\\Documents\\Beta\\beta\\csharp\\examples\\LINQingAround\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\dusti\\OneDrive\\Documents\\Beta\\beta\\csharp\\examples\\LINQingAround\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAQwB0AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-06T04:41:08.866Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@ for sec in range(3):
 screen.tracer(0)
 
 # --- Create game objects ---
-game = Gameboard()          # Draws center line or board layout
+game = Gameboard()          # Draws board layout
 score = Scoreboard()        # Handles score display
 ball = Ball()               # Ball object with movement logic
 paddle_a = Paddle(-480)     # Left paddle
